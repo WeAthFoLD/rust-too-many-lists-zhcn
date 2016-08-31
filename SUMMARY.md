@@ -3,7 +3,7 @@
 * [序](README.md)
 * [一个糟糕的栈](first.md)
     * [布局](first-layout.md)
-    * [New](first-new.md)
+    * [创建](first-new.md)
     * [所有权入门](first-ownership.md)
     * [Push](first-push.md)
     * [Pop](first-pop.md)
