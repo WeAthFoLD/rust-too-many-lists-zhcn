@@ -1,0 +1,9 @@
+body {
+    font-family: 'Microsoft YaHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+}
+
+pre {
+  	word-break: break-all;
+  	/* Non standard for webkit, but it does work on the Mac when generating the PDF */
+  	word-break: break-word;
+}
