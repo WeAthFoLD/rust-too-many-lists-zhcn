@@ -1,15 +1,14 @@
-% New
+# 创建
 
-To associate actual code with a type, we use `impl` blocks:
+我们使用`impl`语句块把实际代码关联到一个类型上：
 
 ```rust
 impl List {
-    // TODO, make code happen
+    // TODO：填充代码
 }
 ```
 
-Now we just need to figure out how to actually write code. In Rust we declare
-a function like so:
+现在我们只需要了解实际编写代码的方法。在Rust我们像这样声明一个函数：
 
 ```rust
 fn foo(arg1: Type1, arg2: Type2) -> ReturnType {
@@ -17,10 +16,7 @@ fn foo(arg1: Type1, arg2: Type2) -> ReturnType {
 }
 ```
 
-The first thing we want is a way to *construct* a list. Since we hide the
-implementation details, we need to provide that as a function. The usual way
-to do that in Rust is to provide a static method, which is just a
-normal function inside an `impl`:
+我们想要的第一件事是*构造*一个列表的方法。由于我们需要隐藏实现细节，需要以函数的形式提供它。在Rust中，创建新对象的通常方法是实现一个`impl`块中的普通静态函数：
 
 ```rust
 impl List {
@@ -30,16 +26,14 @@ impl List {
 }
 ```
 
-A few notes on this:
+一些关键点：
 
-* Self is an alias for "that type I wrote at top next to `impl`". Great for
-  not repeating yourself!
-* We create an instance of a struct in much the same way we declare it, except
-  instead of providing the types of its fields, we initialize them with values.
-* We refer to variants of an enum using `::`, which is the namespacing operator.
-* The last expression of a function is implicitly returned.
-  This makes simple functions a little neater. You can still use `return`
-  to return early like other C-like languages.
+* Self是“我写在impl右侧的那个类型”的别名。不用重复真是太好了！
+* 创建一个struct的实例的语法和声明struct的语法基本相同，只是我们在每个字段的后面提供的是值而非它的类型。
+* 我们使用命名空间运算符`::`来访问enum的变体。
+* 函数的最后一个表达式被隐式的返回。这让简单的函数看起来更简洁。你仍然可以像其他C系语言一样，用`return`来提前返回。
+
+
 
 
 

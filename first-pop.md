@@ -1,9 +1,6 @@
-% Pop
+# Pop
 
-Like `push`, `pop` wants to mutate the list. However, unlike `push` we actually
-want to return something. However `pop` also has to deal with a tricky corner
-case: what if the list is empty? To represent this case, we use the trusty
-`Option` type:
+和`push`一样，`pop`想要改变列表；除此之外，我们还想返回结果。然而`pop`还得处理一个特殊的边界情况：如果列表是空的呢？为了表示这个情况，我们使用可靠的`Option`类型：
 
 ```rust
 pub fn pop(&mut self) -> Option<i32> {
@@ -11,18 +8,11 @@ pub fn pop(&mut self) -> Option<i32> {
 }
 ```
 
-`Option<T>` is an enum that represents a value that may exist. It can either be
-`Some(T)` or `None`. We could make our own enum for this like we did for
-Link, but we want our users to be able to understand what the heck our return
-type is, and Option is so ubiquitous that *everyone* knows it. In fact, it's so
-fundamental that it's implicitly imported into scope in every file, as well
-as its variants `Some` and `None` (so we don't have to say `Option::None`).
+`Option<T>`是一个表示一个值可能存在也可能不存在的enum。它要么是`Some(T)`，要么是`None`。我们也可以像Link一样创建一个自己的enum，但是我们想让用户了解我们的返回类型到底是什么，而Option是如此的无处不在，每个人都知道它。实际上，因为它是如此的基本，它被隐式的导入到了每一个源文件的作用域中，也包括它的两个变体：`Some`和`None`（这样我们就不用写`Option::None`）。
 
-The pointy bits on `Option<T>` indicate that Option is actually *generic* over
-T. That means that you can make an Option for *any* type!
+在`Option<T>`尖括号里的部分指出Option实际上是一个泛型，它的泛型参数是T。这意味着你可以创建一个任何类型的Option！
 
-So uh, we have this `Link` thing, how do we figure out if it's Empty or has
-More? Pattern matching with `match`!
+所以，我们有这个`Link`了，我们怎么检查它是Empty还是More呢？使用`match`进行模式匹配：
 
 ```rust
 pub fn pop(&mut self) -> Option<i32> {
@@ -52,11 +42,7 @@ error: aborting due to previous error
 Could not compile `lists`.
 ```
 
-Whoops, `pop` has to return a value, and we're not doing that yet. We *could*
-return `None`, but in this case it's probably a better idea to return
-`unimplemented!()`, to indicate that we aren't done implementing the function.
-`unimplemented!()` is a macro (`!` indicates a macro) that panics (basically
-just crashes in a controlled manner) the program when we get to it.
+啊，`pop`必须返回一个值，我们还没做这件事。我们*可以*直接返回`None`，但是在这情况下，返回`unimplemented!`来指出我们没有完成该函数的实现会更好。`unimplemented!`是一个宏（`!代表一个宏`），它会在被调用的时候让整个程序panic（基本上也就是以可控的方式崩溃）。
 
 ```rust
 pub fn pop(&mut self) -> Option<i32> {
@@ -72,15 +58,9 @@ pub fn pop(&mut self) -> Option<i32> {
 }
 ```
 
-Unconditional panics are an example of a [diverging function][diverging].
-Diverging functions never return to the caller, so they may be used in places
-where a value of any type is expected. Here, `unimplemented!()` is being
-used in place of a value of type `Option<T>`.
+无条件panic是一个[发散函数(diverging function)][diverging]的例子。发散函数永远不会返回到调用者，所以无论一个地方期待何种类型的返回值，它的返回值都能拿来用。在这里，`unimplemented!`被使用在期待一个`Option<T>`的地方。
 
-Note also that we don't need to write `return` in our program. The last
-expression (basically line) in a function is implicitly its return value. This
-lets us express really simple things a bit more concisely. You can always
-explicitly return early with `return` like any other C-like language.
+注意到我们不需要在程序里写`return`。函数中的最后一个表达式也就隐式的成为它的返回值。这让我们可以更精炼的表达简单的逻辑。你也可以像C系语言一样，显式的`return`返回。
 
 ```text
 > cargo build
@@ -96,8 +76,7 @@ error: aborting due to previous error
 Could not compile `lists`.
 ```
 
-Come on Rust, get off our back! As always, Rust is hella mad at us. Thankfully,
-this time it's also giving us the full scoop!
+噢，Rust，别纠缠不休了！和往常一样，Rust对我们非常生气。值得感谢的是，这次它还给出了深入的信息！
 
 ```text
 src/first.rs:17:9: 17:13 error: cannot move out of borrowed content
@@ -108,15 +87,14 @@ src/first.rs:21           Link::More(node) => {
                                      ^~~~
 ```
 
-Pattern matches by default move the value they match on, so that's why Rust's
-mad.
+模式匹配默认会移动匹配的值，所以这就是它如此生气的原因。
 
 ```text
 help: to prevent the move, use `ref node` or `ref mut node` to capture value by reference
+帮助：要避免移动，使用`ref node`或`ref mut node`来引用捕获该值
 ```
 
-to avoid that, we use the `ref` keyword to indicate that we want to bind the
-`node` subpattern by reference instead. Let's do that:
+为了避免移动，我们使用`ref`关键词来指明我们想要把`node`进行引用绑定。来试试吧：
 
 ```rust
 pub fn pop(&mut self) -> Option<i32> {
@@ -146,10 +124,7 @@ src/first.rs:32           Link::More(ref node) => {
                                      ^~~~~~~~
 ```
 
-Hooray, compiling again! Now let's figure out that logic. We want to make an
-Option, so let's make a variable for that. In the Empty case we need to return
-None. In the More case we need to return `Some(i32)`, and change the head of
-the list. So, let's try to do basically that?
+好耶，又编译了！现在让我们搞清楚实现逻辑。我们要创建一个Option，所以要为这个预留一个变量。在Empty情况下要返回None，在More情况下需要返回`Some(i32)`，并且改变列表的head。来吧：
 
 ```rust
 pub fn pop(&mut self) -> Option<i32> {
@@ -183,33 +158,25 @@ error: aborting due to 2 previous errors
 Could not compile `lists`.
 ```
 
-*head*
+*头*
 
-*desk*
+*桌*
 
-Now we have two *different* errors. First, we're trying to move out of `node`
-when all we have is a shared reference to it. Second, we're trying to mutate
-`self.head` while we've already borrowed it to get the reference to `node`!
+我们现在有了两个不同的的错误。。首先，我们在仅仅拥有一个共享引用的情况下就尝试把值移动出`node`。其次，在我们已经租借了`node`的引用的时候，还在尝试改变`self.head`的值！
 
-This is a tangled mess.
+真是一堆纠缠不清的乱东西。
 
-We should probably step back and think about what we're trying to do. We want
-to:
+我们应该后退一步，思考我们要做什么。我们想要：
 
-* Check if the list is empty.
-* If it's empty, just return None
-* It it's *not* empty
-    * remove the head of the list
-    * remove its `elem`
-    * replace the lists head with its `next`
-    * return `Some(elem)`
+* 检查列表是否为空。
+* 如果是空的，返回None
+* 如果是非空
+    * 移除list头部
+    * 移除该头部的`elem`
+    * 将列表的head替换为`next`
+    * 返回`Some(elem)`
 
-The key insight is we want to *remove* things, which means we want to get the
-head of the list *by value*. We certainly can't do that through the shared
-reference we get through `ref node`. We also "only" have a mutable reference,
-so the only way we can move stuff is to *replace it*. Looks like we're doing
-the Empty dance again! Let's try that:
-
+重要的一点事我们想要*删除*东西，这意味着我们需要*按值*获取list的head。我们肯定不能通过由`ref node`获取的共享引用来做这件事。我们也“只”拥有一个可变引用，所以能移动东西的唯一方法就是*替换它*。看来我们又在做Empty替换那一套了！来试试吧：
 
 ```rust
 pub fn pop(&mut self) -> Option<i32> {
@@ -232,19 +199,13 @@ cargo build
    Compiling lists v0.1.0 (file:///Users/ABeingessner/dev/too-many-lists/lists)
 ```
 
-O M G
+我 的 天 哪
 
-It compiled without *any* warnings!!!!!
+它编译了，一个警告都没有！！！！！
 
-Actually I'm going to apply my own personal lint here: we made this `result`
-value to return, but actually we didn't need to do that at all! Just as a
-function evaluated to its last expression, every block also evaluates to
-its last expression. Normally we supress this behaviour with semi-colons,
-which instead makes the block evaluate to the empty tuple, `()`. This is
-actually the value that functions which don't declare a return value -- like
-`push` -- return.
+这里我要给出我的优化提示了：我们现在返回的是result变量的值，但实际上根本不用这么做！就像一个函数的结果是它的最后一个表达式，每个代码块的结果也是它的最后一个表达式。通常我们使用分号来阻止这一行为，这会让代码块的值变成空元组（tuple）`()`。这实际上也是不声明返回值的函数——例如`push`——返回的。
 
-So instead, we can write `pop` as:
+因此，我们可以将`pop`修改为：
 
 ```rust
 pub fn pop(&mut self) -> Option<i32> {
@@ -258,9 +219,7 @@ pub fn pop(&mut self) -> Option<i32> {
 }
 ```
 
-Which is a bit more concise and idiomatic. Note that the Link::Empty branch
-completely lost its braces, because we only have one expression to
-evaluate. Just a nice shorthand for simple cases.
+这更简洁，也更符合语言惯例。注意到Link::Empty分支只需要求值一个表达式，所以我们把大括号也去掉了。这是对于简单情况的简便处理。
 
 ```text
 > cargo build
@@ -274,40 +233,21 @@ src/first.rs:35                 self.head = node.next;
 error: aborting due to previous error
 ```
 
-WHAT. COME ON.
+啥？别这样啊。
 
-Why the heck did our code stop working?!
+为什么我们的代码不工作了？！
 
-It turns out we accidentally got lucky with the previous code. We have just had
-our first run in with the magic of Copy. When we introduced [ownership][] we
-said that when you move stuff, you can't use it anymore. For some types, this
-makes perfect sense. Our good friend Box manages an allocation on the heap for
-us, and we certainly don't want two pieces of code to think that they need to
-free its memory.
+实际上，我们之前的代码只是侥幸通过了编译，借助Copy的魔法。当我们介绍[所有权][ownership]的时候说过，当你移动值的时候，就无法再使用它。对于某些类型，这是完全合理的。我们的好朋友Box为我们管理堆中的内存分配，而我们显然不想让两段代码认为它们应该释放相同的一块内存。
 
-However for other types this is *butts*. Integers have no
-ownership semantics; they're just meaningless numbers! This is why integers are
-marked as Copy. Copy types are known to be perfectly copyable by a bitwise copy.
-As such, they have a super power: when moved, the old value *is* still usable.
-As a consequence, you can even move a Copy type out of a reference without
-replacement!
+但是对某些类型这简直*糟透了*。整数可没有所有权语义：它们只是毫无意义的数字！这也正是为什么整数被标记为Copy。Copy类型可以通过按位复制进行完整的拷贝。因此，它们拥有一个超能力：当被移动的时候，老的值仍然是可用的。作为结果，你可以将一个Copy类型从引用移出而不需替换！
 
-All numeric primitives in rust (i32, u64, bool, f32, char, etc...) are Copy.
-Also, shared references are Copy, which is super useful! You can also declare
-any user-defined type to be Copy as well, as long as all its components are
-Copy.
+所有rust中的基本数字类型（i32, u64, bool, f32, char, etc...)都是Copy。同时，共享引用也是Copy，这很有用！只要一个自定类型的所有字段都是Copy，你也可以将该类型声明为Copy。
 
-Anyway, back to the code: what went wrong? In our first iteration, we were
-actually *copying* the i32 `elem` when we assigned to result, so the node was
-left unscathed for the next operation. Now we're *moving* the `next` value
-(which isn't Copy), and that consumes the whole Box before we can get to `elem`.
+总之，回到代码：出了什么错？在第一次迭代过程中，我们对result进行赋值时在进行*拷贝*，因此node没被改变，可以被继续用于下一个操作。现在我们在移动`next`（它不是Copy），而这在我们能碰到elem之前消耗掉了整个Box里的值。
 
-Now, we could just rearrange again to get `elem` first, but we're only using
-i32 as a placeholder for *some* data. Later we'll want to work with non-Copy
-data, so we should figure out how to handle this now.
+现在，我们可以重新调整代码来只拿到`elem`，但我们只是使用i32作为某种数据的占位符。晚些时候我们会处理非Copy类型的数据，所以最好现在就研究研究怎么做。
 
-The *right* answer is to pull the *whole* node out of the Box, so that we can
-tear it apart in peace. We do that by explicitly dereferencing it:
+正确的答案是将*整个*节点从Box中取出来，这样就可以安全的将它拆开了。我们通过显式解引用操作来做这件事：
 
 ```rust
 pub fn pop(&mut self) -> Option<i32> {
@@ -322,29 +262,18 @@ pub fn pop(&mut self) -> Option<i32> {
 }
 ```
 
-After that, Rust understands an on-the-stack value well enough to let you take
-it apart piece-by-piece.
+在这之后，Rust就可以足够好的理解一个栈上的值，来让你一步步分解它了。
 
 ```text
 > cargo build
    Compiling lists v0.1.0 (file:///Users/ABeingessner/dev/too-many-lists/lists)
 ```
 
-Nice.
+不错。
 
-Box is actually really special in Rust, because it's sufficiently built into the
-language that the compiler lets you do some stuff that nothing else can do. We
-actually have been doing one such thing this whole time: `DerefMove`. Whenever
-you have a pointer type you can derefence it with `*` or `.` to get at its
-contents. Usually you can get a `Deref` or maybe even a `DerefMut`,
-corresponding to a shared or mutable reference respectively.
+Box在Rust里真的很特殊，因为它是固定于语言里的一部分，编译器可以让你对它做一些其它任何类型都不能做的事。我们实际上一直在做这件事：`DerefMove`。当你拥有一个指针类型时，可以通过`*`或`.`来获得它的内容。通常你可以获得一个`Deref`或者一个`DerefMut`，分别对应共享和可变引用。
 
-However because Box totally owns its contents, you can actually *move out of*
-a dereference. This is total magic, because there's no way for any other type
-to opt into this. There's tons of other cool tricks the compiler knows how to do
-with Box because it *just is* Box, but they were all feature-gated at 1.0
-pending further design. Ideally Box will be totally user definable in the
-future.
+但是因为Box完全拥有它的内容，你可以通过解引用*将内容移出*。这是完完全全的魔法，因为其他任何类型都无法实现这个操作。编译器还知道如何在Box上实现很多很多的酷炫技巧，只因为它*就是*Box，但是它们都被阻挡在了1.0版本的实现目标之外，等待进一步的设计。理想的，Box会在未来完全可自定义化。
 
 
 
