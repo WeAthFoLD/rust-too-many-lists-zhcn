@@ -1,13 +1,8 @@
-% Drop
+# Drop
 
-We can make a stack, push on to, pop off it, and we've even tested that it all
-works right!
+我们现在可以创建一个栈，推入元素，弹出元素，甚至确认了一切都可以正常的工作！
 
-Do we need to worry about cleaning up our list? Technically, no, not at all!
-Like C++, Rust uses destructors to automatically clean up resources when they're
-done with. A type has a destructor if it implements a *trait* called Drop.
-Traits are Rust's fancy term for interfaces. The Drop trait has the following
-interface:
+我们需要担心列表元素的清理么？严格的说，根本不用！就像C++，Rust使用析构器来自动的处理使用完毕的资源。如果一个类型实现了叫做 Drop 的*特性（Trait）*，它就拥有一个析构器。特性是Rust对接口的特别术语。Drop特性有如下的接口：
 
 ```
 pub trait Drop {
@@ -15,49 +10,35 @@ pub trait Drop {
 }
 ```
 
-Basically, "when you go out of scope, I'll give you a second to clean up your
-affairs".
+基本上是这个意思：“当对象退出作用域的时候，我会给你清理事务的第二次机会”。
 
-You don't actually need to implement Drop if you contain types that implement
-Drop, and all you'd want to do is call *their* destructors. In the case of
-List, all it would want to do is drop its head, which in turn would *maybe*
-try to drop a `Box<Node>`. All that's handled for us automatically... with one
-hitch.
+如果你的类型里存放有实现了Drop的其他类型，而你想要调用它们的析构器，是不需要实际实现Drop的。对于List来说，我们想做的不过是把列表头丢弃，之后或许会接着丢弃一个`Box<Node>`。所有这些都会自动在一瞬间处理完成。
 
-The automatic handling is going to be bad.
+自动处理会很糟糕。
 
-Let's consider a simple list:
-
+让我们考虑这个简单的列表。
 
 ```text
 list -> A -> B -> C
 ```
 
-When `list` gets dropped, it will try to drop A, which will try to drop B,
-which will try to drop C. Some of you might rightly be getting nervous. This is
-recursive code, and recursive code can blow the stack!
-
-Some of you might be thinking "this is clearly tail recursive, and any decent
-language would ensure that such code wouldn't blow the stack". This is, in fact,
-incorrect! To see why, let's try to write what the compiler has to do, by
-manually implementing Drop for our List as the compiler would:
-
+当列表被丢弃时，它会先丢弃A，然后尝试丢弃B，然后会尝试丢弃C。现在你可能已经紧张起来了。这是递归代码，而递归代码会把栈爆掉！
 
 ```rust
 impl Drop for List {
     fn drop(&mut self) {
-        // NOTE: you can't actually explicitly call `drop` in real Rust code;
-        // we're pretending to be the compiler!
-        list.head.drop(); // tail recursive - good!
+        // 注意：在实际Rust代码中你不能显式调用`drop`，
+        // 我们假装自己是编译器！
+        list.head.drop(); // 尾递归——好！
     }
 }
 
 impl Drop for Link {
     fn drop(&mut self) {
         match list.head {
-            Link::Empty => {} // Done!
+            Link::Empty => {} // 完成！
             Link::More(ref mut boxed_node) => {
-                boxed_node.drop(); // tail recursive - good!
+                boxed_node.drop(); // 尾递归——好！
             }
         }
     }
@@ -65,7 +46,7 @@ impl Drop for Link {
 
 impl Drop for Box<Node> {
     fn drop(&mut self) {
-        self.ptr.drop(); // uh oh, not tail recursive!
+        self.ptr.drop(); // 糟糕，不是尾递归！
         deallocate(self.ptr);
     }
 }
@@ -77,21 +58,18 @@ impl Drop for Node {
 }
 ```
 
-We *can't* drop the contents of the Box *after* deallocating, so there's no
-way to drop in a tail-recursive manner! Instead we're going to have to manually
-write an iterative drop for `List` that hoists nodes out of their boxes.
-
+我们不能在释放内存之后再丢弃Box的内容，所以没有办法以尾递归的形式进行drop！作为替代，我们必须为`List`手动编写一个迭代drop，来把节点从box中拿出来。
 
 ```rust
 impl Drop for List {
     fn drop(&mut self) {
         let mut cur_link = mem::replace(&mut self.head, Link::Empty);
-        // `while let` == "do this thing until this pattern doesn't match"
+        // `while let` == “在这个模式不匹配之前持续循环”
         while let Link::More(mut boxed_node) = cur_link {
             cur_link = mem::replace(&mut boxed_node.next, Link::Empty);
-            // boxed_node goes out of scope and gets dropped here;
-            // but its Node's `next` field has been set to Link::Empty
-            // so no unbounded recursion occurs.
+            // boxed_node在这里退出作用域然后被丢弃；
+            // 但是其节点的`next`字段被设置为 Link::Empty
+            // 所以没有多层递归产生。
         }
     }
 }
@@ -114,4 +92,4 @@ running 0 tests
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured
 ```
 
-Great!
+棒极了！
